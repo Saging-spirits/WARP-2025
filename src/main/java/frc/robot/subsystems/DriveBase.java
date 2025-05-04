@@ -22,6 +22,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import edu.wpi.first.wpilibj2.command.Command;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.OperatorConstants;
 
  
 
@@ -65,7 +66,30 @@ public class DriveBase extends SubsystemBase {
 
   }
 
- 
+ public Command DriveTank(DoubleSupplier LeftY, DoubleSupplier RightY) {
+  return run(()->{
+    double LeftPower=0;
+    double RightPower=0;
+  
+    if (LeftY.getAsDouble()>OperatorConstants.Deadzone){
+      LeftPower=OperatorConstants.MaxSpeed*LeftY.getAsDouble();
+    } else if (LeftY.getAsDouble()<-OperatorConstants.Deadzone){
+      LeftPower=OperatorConstants.MaxSpeed*LeftY.getAsDouble();
+    }
+    if (RightY.getAsDouble()>OperatorConstants.Deadzone){
+      RightPower=-OperatorConstants.MaxSpeed*RightY.getAsDouble();
+    } else if (RightY.getAsDouble()<-OperatorConstants.Deadzone){
+      RightPower=-OperatorConstants.MaxSpeed*RightY.getAsDouble();
+    }
+    LeftPower=Math.pow(LeftPower, 3);
+    RightPower=Math.pow(RightPower, 3);
+    LeftSide.setVoltage(LeftPower);
+    RightSide.setVoltage(RightPower);
+
+    System.out.println("LeftSpeed"+LeftY.getAsDouble());
+    System.out.println("RightSpeed"+RightY.getAsDouble());
+  });
+ }
 
   public Command DriveGeneral(DoubleSupplier Xjoy, DoubleSupplier Yjoy) {
 
@@ -248,3 +272,6 @@ if (Xjoy.getAsDouble()*Xjoy.getAsDouble()+Yjoy.getAsDouble()*Yjoy.getAsDouble()<
   }
 
 }
+
+
+//New code built from here

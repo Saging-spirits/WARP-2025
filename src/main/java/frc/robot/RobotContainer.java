@@ -19,7 +19,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  */
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
-  private final DriveBase No = new DriveBase();
+  private final DriveBase driveBase= new DriveBase();
   private final Elevator elevator = new Elevator();
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
@@ -42,11 +42,11 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-   Forwards().whileTrue(No.DriveForward());
-   No.setDefaultCommand(No.Stop());
-   Left().whileTrue(No.TurnLeft());
-   Backwards().whileTrue(No.DriveBackward());
-   Right().whileTrue(No.TurnRight());
+   //Forwards().whileTrue(driveBase.DriveForward());
+   driveBase.setDefaultCommand(driveBase.DriveTank(() -> m_driverController.getLeftY(), () -> m_driverController.getRightY()));
+   //Left().whileTrue(driveBase.TurnLeft());
+   //Backwards().whileTrue(driveBase.DriveBackward());
+   //Right().whileTrue(driveBase.TurnRight());
    m_driverController.x().whileTrue(elevator.GoToSetpoint(Elevator.SetPoint.L1));
    m_driverController.y().whileTrue(elevator.GoToSetpoint(Elevator.SetPoint.L2));
    m_driverController.b().whileTrue(elevator.GoToSetpoint(Elevator.SetPoint.L3));
@@ -55,13 +55,13 @@ public class RobotContainer {
 
   private Trigger Forwards(){
     return new Trigger(()->{
-      return m_driverController.getLeftY()<-0.2;
+      return m_driverController.getLeftY()<-0.1;
     });
   }
 
   private Trigger Backwards(){
     return new Trigger(()->{
-      return m_driverController.getLeftY()>0.2;
+      return m_driverController.getLeftY()>0.1;
     });
   }
 
@@ -70,7 +70,7 @@ public class RobotContainer {
 
   private Trigger Left(){
     return new Trigger(()->{
-      return m_driverController.getLeftX()<-0.2;
+      return m_driverController.getLeftX()<-0.1;
     });
   }
 
@@ -78,7 +78,7 @@ public class RobotContainer {
 
   private Trigger Right(){
     return new Trigger(()->{
-      return m_driverController.getLeftX()>0.2;
+      return m_driverController.getLeftX()>0.1;
     });
   }
 
@@ -89,7 +89,7 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     // An example command will be run in autonomous
-  return No.DriveForward().withTimeout(5).andThen(No.Stop());
+  return driveBase.DriveForward().withTimeout(5).andThen(driveBase.Stop());
 
   }
 }
