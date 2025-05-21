@@ -6,8 +6,11 @@ package frc.robot;
 
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.subsystems.DriveBase;
+import frc.robot.subsystems.DriveBasePWM;
 import frc.robot.subsystems.Elevator;
+import frc.robot.subsystems.Scoring;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
@@ -19,8 +22,9 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  */
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
-  private final DriveBase driveBase= new DriveBase();
+  private final DriveBasePWM driveBase= new DriveBasePWM();
   private final Elevator elevator = new Elevator();
+  private final Scoring scoring = new Scoring();
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController m_driverController =
@@ -51,6 +55,9 @@ public class RobotContainer {
    m_driverController.y().whileTrue(elevator.GoToSetpoint(Elevator.SetPoint.L2));
    m_driverController.b().whileTrue(elevator.GoToSetpoint(Elevator.SetPoint.L3));
    m_driverController.a().whileTrue(elevator.GoToSetpoint(Elevator.SetPoint.Reset));
+   m_driverController.leftTrigger().whileTrue(scoring.intakeCommand());
+   m_driverController.leftTrigger().whileFalse(scoring.intakestopCommand());
+
   }
 
   private Trigger Forwards(){
@@ -87,9 +94,9 @@ public class RobotContainer {
    *
    * @return the command to run in autonomous
    */
-  public Command getAutonomousCommand() {
+ public Command getAutonomousCommand() {
     // An example command will be run in autonomous
-  return driveBase.DriveForward().withTimeout(5).andThen(driveBase.Stop());
-
+  //return driveBase.DriveForward().withTimeout(5).andThen(driveBase.Stop());
+    return Commands.none();
   }
 }
