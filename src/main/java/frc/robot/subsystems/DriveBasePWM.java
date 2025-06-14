@@ -9,12 +9,19 @@ package frc.robot.subsystems;
 
  
 
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
 import com.revrobotics.spark.SparkMax;
 
+import choreo.trajectory.DifferentialSample;
+
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
+import edu.wpi.first.math.controller.LTVUnicycleController;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.wpilibj.ADIS16448_IMU;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.PWM;
@@ -56,9 +63,42 @@ System.out.println();
    * @return a command
 
    */
+  
+//       private final LTVUnicycleController controller = new LTVUnicycleController(0.02);
+//     public void followTrajectory(DifferentialSample sample) {
+//         // Get the current pose of the robot
+//         Pose2d pose = Pose2d.kZero;
 
+//         // Get the velocity feedforward specified by the sample
+//         ChassisSpeeds ff = sample.getChassisSpeeds();
 
- public Command DriveTank(DoubleSupplier LeftY, DoubleSupplier RightY) {
+//         // Generate the next speeds for the robot
+//         ChassisSpeeds speeds = controller.calculate(
+//             pose,
+//             sample.getPose(),
+//             ff.vxMetersPerSecond,
+//             ff.omegaRadiansPerSecond
+//         );
+
+//         // Apply the generated speeds
+//         drive(speeds);
+
+//         // Or, if you don't drive via ChassisSpeeds
+//         DifferentialDriveWheelSpeeds wheelSpeeds = kinematics.toWheelSpeeds(speeds); // 
+//         drive(wheelSpeeds.leftMetersPerSecond, wheelSpeeds.rightMetersPerSecond);
+//     }
+
+// public void drive(double LeftWheelSpeed, double RightWheelSpeed){
+
+// }
+public Command DriveForward(){
+  return run(()->{
+  LeftSide.setSpeed(-0.5);
+    RightSide.setSpeed(0.5);
+  });
+}
+
+ public Command DriveTank(DoubleSupplier LeftY, DoubleSupplier RightY, BooleanSupplier Boost, BooleanSupplier Slow) {
   return run(()->{
     double LeftPower=0;
     double RightPower=0;
@@ -73,9 +113,15 @@ System.out.println();
     } else if (RightY.getAsDouble()<-OperatorConstants.Deadzone){
       RightPower=-OperatorConstants.MaxSpeed*RightY.getAsDouble();
     }
-
-    LeftSide.setSpeed(LeftPower);
-    RightSide.setSpeed(RightPower);
+    double BoostSpeed = 1;
+    if (Boost.getAsBoolean()==true){
+      BoostSpeed = 2;
+    }
+    if (Slow.getAsBoolean()==true){
+      BoostSpeed = 0.5;
+    }
+    LeftSide.setSpeed(LeftPower*BoostSpeed);
+    RightSide.setSpeed(RightPower*BoostSpeed);
 
     System.out.println("LeftSpeed"+LeftY.getAsDouble());
     System.out.println("RightSpeed"+RightY.getAsDouble());

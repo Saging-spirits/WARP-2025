@@ -33,7 +33,7 @@ public class RobotContainer {
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     // Configure the trigger bindings
-    configureBindings();
+
   }
 
   /**
@@ -45,9 +45,9 @@ public class RobotContainer {
    * PS4} controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight
    * joysticks}.
    */
-  private void configureBindings() {
+  public void configureBindings() {
    //Forwards().whileTrue(driveBase.DriveForward());
-   driveBase.setDefaultCommand(driveBase.DriveTank(() -> m_driverController.getLeftY(), () -> m_driverController.getRightY()));
+   driveBase.setDefaultCommand(driveBase.DriveTank(() -> m_driverController.getLeftY(), () -> m_driverController.getRightY(), ()-> m_driverController.leftBumper().getAsBoolean(), ()-> m_driverController.rightBumper().getAsBoolean()));
    //Left().whileTrue(driveBase.TurnLeft());
    //Backwards().whileTrue(driveBase.DriveBackward());
    //Right().whileTrue(driveBase.TurnRight());
@@ -56,7 +56,7 @@ public class RobotContainer {
    m_driverController.b().whileTrue(elevator.GoToSetpoint(Elevator.SetPoint.L3));
    m_driverController.a().whileTrue(elevator.GoToSetpoint(Elevator.SetPoint.Reset));
    m_driverController.leftTrigger().whileTrue(scoring.intakeCommand());
-   m_driverController.leftTrigger().whileFalse(scoring.intakestopCommand());
+   scoring.setDefaultCommand(scoring.intakestopCommand());
 
   }
 
@@ -96,7 +96,7 @@ public class RobotContainer {
    */
  public Command getAutonomousCommand() {
     // An example command will be run in autonomous
-  //return driveBase.DriveForward().withTimeout(5).andThen(driveBase.Stop());
-    return Commands.none();
+  return driveBase.DriveForward().withTimeout(1).andThen(driveBase.Stop()).withTimeout(0.2).andThen(scoring.intakeCommand()).withTimeout(1).andThen(scoring.intakestopCommand());
+   // return Commands.none();
   }
 }
