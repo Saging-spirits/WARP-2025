@@ -5,10 +5,10 @@
 package frc.robot;
 
 import frc.robot.Constants.OperatorConstants;
-import frc.robot.subsystems.DriveBase;
 import frc.robot.subsystems.DriveBasePWM;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.Scoring;
+import frc.robot.subsystems.Outtake;
 
 
 import java.util.function.BooleanSupplier;
@@ -28,13 +28,19 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   private final DriveBasePWM driveBase= new DriveBasePWM();
- // private final Elevator elevator = new Elevator();
-  //private final Scoring scoring = new Scoring();
+ private final Elevator elevator = new Elevator();
+  private final Scoring scoring = new Scoring();  
+  private final Outtake outtake = new Outtake();
+
 
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController m_driverController =
       new CommandXboxController(0);
+
+  private final CommandXboxController m_codriverController =
+      new CommandXboxController(1);
+
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -59,13 +65,18 @@ public class RobotContainer {
    //Left().whileTrue(driveBase.TurnLeft());
    //Backwards().whileTrue(driveBase.DriveBackward());
    //Right().whileTrue(driveBase.TurnRight());
-  //  m_driverController.x().whileTrue(elevator.GoToSetpoint(Elevator.SetPoint.L1));
-  //  m_driverController.y().whileTrue(elevator.GoToSetpoint(Elevator.SetPoint.L2));
-  //  m_driverController.b().whileTrue(elevator.GoToSetpoint(Elevator.SetPoint.L3));
-  //  m_driverController.a().whileTrue(elevator.GoToSetpoint(Elevator.SetPoint.Reset));
-  //  m_driverController.rightTrigger().whileTrue(scoring.intakeCommand());
-  //  m_driverController.leftTrigger().whileTrue(scoring.outputCommand());
-  //  scoring.setDefaultCommand(scoring.intakestopCommand());
+   m_codriverController.x().whileTrue(elevator.GoToSetpoint(Elevator.SetPoint.Collection));
+   m_codriverController.y().whileTrue(elevator.GoToSetpoint(Elevator.SetPoint.Eject));
+   m_codriverController.b().whileTrue(elevator.GoToSetpoint(Elevator.SetPoint.EjectStraight));
+   m_codriverController.a().whileTrue(elevator.GoToSetpoint(Elevator.SetPoint.Transport));
+   m_driverController.rightTrigger().whileTrue(scoring.intakeCommand());
+   m_driverController.leftTrigger().whileTrue(scoring.outputCommand());
+   m_codriverController.rightTrigger().whileTrue(outtake.intakeCommand());
+   m_codriverController.leftTrigger().whileTrue(outtake.outputCommand());
+
+   scoring.setDefaultCommand(scoring.intakestopCommand());
+   outtake.setDefaultCommand(outtake.intakestopCommand());
+    elevator.setDefaultCommand(elevator.Stop());
 
   }
 

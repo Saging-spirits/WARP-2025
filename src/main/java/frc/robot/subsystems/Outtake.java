@@ -5,11 +5,12 @@ import java.util.function.DoubleSupplier;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
+import edu.wpi.first.wpilibj.PWM;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public class Scoring extends SubsystemBase{
-      private SparkMax scoring = new SparkMax(8, MotorType.kBrushed);
+public class Outtake extends SubsystemBase{
+      private SparkMax scoring = new SparkMax(5, MotorType.kBrushless);
 
       public Command intakeCommand() {
   return run(()->{
