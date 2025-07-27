@@ -54,10 +54,10 @@ private final Arm mArm = new Arm();
    */
   private void configureBindings() {
     mTankdrive.setDefaultCommand(mTankdrive.Drive(()->m_driverController.getLeftY(), ()->m_driverController.getRightY()));
-    m_driverController.y().whileTrue(Commands.parallel(mElevator.GotoPos(0), mArm.GotoPos(-17)));
-    m_driverController.b().whileTrue(mElevator.GotoPos(10));
-    m_driverController.a().whileTrue(mElevator.GotoPos(20));
-    m_driverController.x().whileTrue(Commands.parallel(mElevator.GotoPos(40), mArm.GotoPos(-55)));
+    m_driverController.y().whileTrue(mElevator.GotoPos(0));
+    m_driverController.b().whileTrue(mElevator.GotoPos(-30));
+    m_driverController.a().whileTrue(mElevator.GotoPos(-50));
+    m_driverController.x().whileTrue(Commands.sequence(mElevator.GotoPos(-80), mArm.GotoPos(-30)));
     mElevator.setDefaultCommand(mElevator.Stop());
     mArm.setDefaultCommand(mArm.Stop());
   }

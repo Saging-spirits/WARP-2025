@@ -14,8 +14,8 @@ public class Tankdrive extends SubsystemBase {
 
     public Command Drive(DoubleSupplier Joy1Y, DoubleSupplier Joy2Y) {
         return run(()->{
-            driveLeft.setVoltage(11*Joy1Y.getAsDouble());
-            driveRight.setVoltage(11*Joy2Y.getAsDouble());
+            driveLeft.setVoltage(5*Joy2Y.getAsDouble());
+            driveRight.setVoltage(5*Joy1Y.getAsDouble());
         });
     }
 }
