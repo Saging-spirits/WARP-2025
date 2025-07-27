@@ -41,13 +41,13 @@ public class Controller {
         String name = hid.getName().toLowerCase();
 
         System.out.println("Controller name: " + name);
-        if (name.contains("xbox")) {
+        if (name.contains("xbox") || name.contains("360")) {
             inner = new XboxInner(port);
         } else if (name.contains("ps4")) {
             inner = new PS4Inner(port);
         } else if (name.contains("ps5")) {
             inner = new PS5Inner(port);
-        } else if (name.contains("nintendo") || name.contains("switch") || name.contains("NSW")) {
+        } else if (name.contains("nintendo") || name.contains("switch") || name.contains("nsw")) {
             inner = new NintendoInner(hid);
         } else {
             throw new IllegalArgumentException("Unknown controller type: " + name);

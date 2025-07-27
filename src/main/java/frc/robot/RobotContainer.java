@@ -8,7 +8,11 @@ import frc.robot.Constants.OperatorConstants;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.ExampleSubsystem;
+import frc.robot.subsystems.Feed;
 import frc.robot.subsystems.Tankdrive;
+
+import java.util.Set;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -27,13 +31,14 @@ public class RobotContainer {
 private final Tankdrive mTankdrive = new Tankdrive();
 private final Elevator mElevator = new Elevator();
 private final Arm mArm = new Arm();
+private final Feed mFeed = new Feed();
 
 
 
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
-  private final CommandXboxController m_driverController =
-      new CommandXboxController(OperatorConstants.kDriverControllerPort);
+  private final Controller m_driverController =
+      new Controller(OperatorConstants.kDriverControllerPort);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -52,10 +57,49 @@ private final Arm mArm = new Arm();
    */
   private void configureBindings() {
     mTankdrive.setDefaultCommand(mTankdrive.Drive(()->m_driverController.getLeftY(), ()->m_driverController.getRightY()));
-    m_driverController.y().whileTrue(mElevator.GotoPos(0));
-    m_driverController.b().whileTrue(mElevator.GotoPos(-30));
-    m_driverController.a().whileTrue(mElevator.GotoPos(-50));
-    m_driverController.x().whileTrue(Commands.sequence(mElevator.GotoPos(-80), mArm.GotoPos(-30)));
+    m_driverController.y().whileTrue(           //POS 1 (Y)
+      Commands.sequence(
+        mArm.GotoPosSlow(-13).until(mArm.atSetpoint2()), 
+        Commands.parallel(
+          mArm.GotoPosSlow(-13), 
+          mElevator.GotoPosSlow(0)
+          )
+      ));
+
+      m_driverController.b().whileTrue(         //POS2 B
+        Commands.sequence(
+          mElevator.GotoPosSlow(-25).until(mElevator.atSetpoint()),
+          Commands.parallel(
+            mElevator.GotoPosSlow(-25),
+            mArm.GotoPos(-40)
+          )
+        ));
+
+        m_driverController.a().whileTrue(         //POS3 A
+          Commands.sequence(
+            mElevator.GotoPosSlow(-50).until(mElevator.atSetpoint()),
+            Commands.parallel(
+              mElevator.GotoPosSlow(-50),
+              mArm.GotoPos(-40)
+            )
+        ));
+
+        m_driverController.x().whileTrue(       //POS 4 X
+          Commands.sequence(
+            mElevator.GotoPosSlow(-70).until(mElevator.atSetpoint()),
+            Commands.parallel(
+              mElevator.GotoPosSlow(-70),
+              mArm.GotoPos(20)
+            )
+        ));
+
+  
+  
+
+      m_driverController.leftTrigger().whileTrue(mFeed.intake(() -> m_driverController.getLeftTrigger()));
+      m_driverController.rightTrigger().whileTrue(mFeed.outtake(() -> m_driverController.getRightTrigger()));
+
+    mFeed.setDefaultCommand(mFeed.stop());
     mElevator.setDefaultCommand(mElevator.Stop());
     mArm.setDefaultCommand(mArm.Stop());
   }
