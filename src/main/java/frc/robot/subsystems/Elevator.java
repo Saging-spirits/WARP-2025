@@ -11,36 +11,45 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 public class Elevator extends SubsystemBase {
-private final SparkMax Motor = new SparkMax(6, MotorType.kBrushless);
+private final SparkMax Motor = new SparkMax(2, MotorType.kBrushless);
 public final RelativeEncoder encoder = Motor.getEncoder();
-private final PIDController Loop1 = new PIDController(0.2, 0, 0);
+public final PIDController Loop1 = new PIDController(0.3, 0, 0);
+public boolean goingForTransfer = false;
 
 
 public Trigger atSetpoint() { 
     return new Trigger(() -> Loop1.atSetpoint());
 }
 public Elevator() {
-    Loop1.setTolerance(4.5);
+    Loop1.setTolerance(1.3);
 }
 
-public Command GotoPos(double position) {
+@Override
+public void periodic() {
+    NetworkTableInstance.getDefault().getEntry("Elevator Setpoint").setBoolean(atSetpoint().getAsBoolean());
+}
+
+public Command GotoPos(double position, boolean _goingForTransfer) {
     return run(()->{
         double output = Loop1.calculate(encoder.getPosition(), position);
         double max = Math.max(output, -6);
         double min = Math.min(max, 6);
         Motor.setVoltage(min);
 
+        goingForTransfer = _goingForTransfer;
  NetworkTableInstance.getDefault().getEntry("Elevator Error").setNumber(Loop1.getError());
 
     });
 }
 
-public Command GotoPosSlow(double position) {
+public Command GotoPosSlow(double position, boolean _goingForTransfer) {
     return run(()->{
         double output = Loop1.calculate(encoder.getPosition(), position);
         double max = Math.max(output, -3);
         double min = Math.min(max, 3);
         Motor.setVoltage(min);
+
+        goingForTransfer = _goingForTransfer;
 
  NetworkTableInstance.getDefault().getEntry("Elevator Error").setNumber(Loop1.getError());
 
