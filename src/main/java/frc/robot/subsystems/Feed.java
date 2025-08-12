@@ -41,6 +41,7 @@ public class Feed extends SubsystemBase {
     public Command intakeFront(DoubleSupplier prop) {
         return run(() -> {
             motorFront.setVoltage(4 * prop.getAsDouble());
+            motorBack.setVoltage(0);
         });
     }
 
@@ -66,6 +67,7 @@ public class Feed extends SubsystemBase {
     public Command intakeBack(DoubleSupplier prop) {
         return run(() -> {
             motorBack.setVoltage(-4 * prop.getAsDouble());
+            motorFront.setVoltage(0);
         });
     }
 
@@ -83,8 +85,8 @@ public class Feed extends SubsystemBase {
 
     public Command intakeBoth() {
         return run(() -> {
-            motorFront.setVoltage(-4);
-            motorBack.setVoltage(-4);
+            motorFront.setVoltage(3);
+            motorBack.setVoltage(-3);
         });
     }
 }
