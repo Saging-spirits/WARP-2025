@@ -11,6 +11,9 @@ import frc.robot.subsystems.ExampleSubsystem;
 import frc.robot.subsystems.Feed;
 import frc.robot.subsystems.Tankdrive;
 
+import frc.robot.subsystems.LedSignaller;
+import frc.robot.subsystems.LedSignaller.Pattern;
+
 import java.util.Set;
 
 import edu.wpi.first.wpilibj.XboxController;
@@ -37,6 +40,7 @@ private final Elevator mElevator = new Elevator();
 private final Feed mFeed = new Feed();
 public boolean intaking = false;
 
+private final LedSignaller mLed = new LedSignaller();  // <-- ADDED BY MR H
 
 
 
@@ -47,6 +51,8 @@ public boolean intaking = false;
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     // Configure the trigger bindings
+    mTankdrive.setLed(mLed);
+    
     configureBindings();
   }
 
