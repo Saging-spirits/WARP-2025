@@ -2,9 +2,13 @@ package frc.robot.subsystems;
 
 import java.util.function.DoubleSupplier;
 
+import com.revrobotics.AbsoluteEncoder;
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -16,9 +20,18 @@ public class Tankdrive extends SubsystemBase {
     private final SparkMax driveLeft = new SparkMax(3, MotorType.kBrushed);
     private final SparkMax driveRight = new SparkMax(5, MotorType.kBrushed);
 
+    public final RelativeEncoder encoderLeft = driveLeft.getEncoder();
+    public final RelativeEncoder encoderRight = driveRight.getEncoder();
+
     // Reference to LED signaller (set from RobotContainer)
     private LedSignaller mLed = null;
     public void setLed(LedSignaller led) { this.mLed = led; }
+
+    @Override
+    public void periodic() {
+        NetworkTableInstance.getDefault().getEntry("LeftEncoder").setNumber(encoderLeft.getPosition());
+        NetworkTableInstance.getDefault().getEntry("RightEncoder").setNumber(encoderRight.getPosition());
+    }
 
     public Command Drive(DoubleSupplier Joy1Y, DoubleSupplier Joy2Y) {
         return run(() -> {

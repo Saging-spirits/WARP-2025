@@ -16,6 +16,10 @@ import frc.robot.subsystems.LedSignaller.Pattern;
 
 import java.util.Set;
 
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cscore.UsbCamera;
+import edu.wpi.first.cscore.VideoMode;
+import edu.wpi.first.util.PixelFormat;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -42,11 +46,14 @@ public boolean intaking = false;
 
 private final LedSignaller mLed = new LedSignaller();  // <-- ADDED BY MR H
 
-
+UsbCamera camera;
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController m_driverController =
       new CommandXboxController(OperatorConstants.kDriverControllerPort);
+  private final CommandXboxController m_codriverController =
+      new CommandXboxController(OperatorConstants.kCoDriverControllerPort);
+
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -54,6 +61,9 @@ private final LedSignaller mLed = new LedSignaller();  // <-- ADDED BY MR H
     mTankdrive.setLed(mLed);
     
     configureBindings();
+
+    camera = CameraServer.startAutomaticCapture();
+    camera.setVideoMode(PixelFormat.kYUYV, 160, 120, 30);
   }
 
   /**
@@ -67,63 +77,15 @@ private final LedSignaller mLed = new LedSignaller();  // <-- ADDED BY MR H
    */
   private void configureBindings() {
     mTankdrive.setDefaultCommand(mTankdrive.Drive(()->m_driverController.getLeftY(), ()->m_driverController.getRightY()));
-    // m_driverController.y().whileTrue(           //POS 1 (Y)
-    //   Commands.sequence(
-    //     mArm.GotoPosSlow(-13).until(mArm.atSetpoint2()), 
-    //     Commands.parallel(
-    //       mArm.GotoPosSlow(-13), 
-    //       mElevator.GotoPosSlow(0)
-    //       )
-    //   ));
 
-    //   m_driverController.b().whileTrue(         //POS2 B
-    //     Commands.sequence(
-    //       mElevator.GotoPosSlow(-22).until(mElevator.atSetpoint()),
-    //       Commands.parallel(
-    //         mElevator.GotoPosSlow(-22),
-    //         mArm.GotoPos(-42)
-    //       )
-    //     ));
-
-    //     m_driverController.a().whileTrue(         //POS3 A
-    //       Commands.sequence(
-    //         mElevator.GotoPosSlow(-47).until(mElevator.atSetpoint()),
-    //         Commands.parallel(
-    //           mElevator.GotoPosSlow(-47),
-    //           mArm.GotoPos(-41)
-    //         )
-    //     ));
-
-    //     m_driverController.x().whileTrue(       //POS 4 X
-    //       Commands.sequence(
-    //         mElevator.GotoPosSlow(-95).until(mElevator.atSetpoint()),
-    //         Commands.parallel(
-    //           mElevator.GotoPosSlow(-95),
-    //           mArm.GotoPos(20)
-    //         )
-    //     ));
-//     double point = 2.9;
-    // RobotModeTriggers.teleop().and(() -> !intaking).whileTrue(mFeed.intakeBack(() -> 0.3).withInterruptBehavior(InterruptionBehavior.kCancelIncoming).unless(mFeed.back).until(mFeed.back).andThen(mFeed.stopBack().alongWith(Commands.run(() -> intaking = true))).andThen(mFeed.stopBack()));
     RobotModeTriggers.teleop().onTrue(mElevator.GotoPosSlow(10, false).withInterruptBehavior(InterruptionBehavior.kCancelIncoming).until(mElevator.atSetpoint()));
-//     mFeed.back.and(() -> intaking).whileTrue(mFeed.stopBack().withInterruptBehavior(InterruptionBehavior.kCancelIncoming).until(mElevator.atSetpoint().and(() -> mElevator.goingForTransfer)).unless(mElevator.atSetpoint().and(() -> mElevator.goingForTransfer)));
-//     mFeed.back.and(() -> intaking).whileTrue(mElevator.GotoPos(point, true).until(mElevator.atSetpoint()));
 
-//     mElevator.atSetpoint().and(() -> intaking).and(() -> mElevator.goingForTransfer)
-//       .whileTrue(Commands.parallel(mFeed.intakeBoth(), mElevator.GotoPos(point, true)).withInterruptBehavior(InterruptionBehavior.kCancelIncoming).until(mFeed.front));
+    m_codriverController.rightTrigger().whileTrue(mFeed.outtakeFront(() -> m_codriverController.getRightTriggerAxis()));
+    m_codriverController.leftTrigger().whileTrue(mFeed.outtakeBack(() -> m_codriverController.getLeftTriggerAxis()));
 
-//     mFeed.front.and(() -> intaking).whileTrue(mFeed.intakeFront(() -> 0.5).alongWith(mElevator.GotoPos(point, true)).withInterruptBehavior(InterruptionBehavior.kCancelIncoming).until(mFeed.front.negate()).unless(mFeed.front.negate()).andThen(mFeed.stopFront()).until(() -> !mElevator.goingForTransfer));
-
-//     m_driverController.rightTrigger().whileTrue(Commands.runOnce(() -> {
-//       mElevator.goingForTransfer = false;
-//       intaking = false;
-//       mElevator.Loop1.reset();
-//     }).until(m_driverController.rightTrigger().negate()).alongWith(
-// mFeed.outtakeFront(() -> m_driverController.getRightTriggerAxis()).until(m_driverController.rightTrigger().negate()).andThen(mFeed.stop())));
-
-    m_driverController.rightTrigger().whileTrue(mFeed.outtakeFront(() -> m_driverController.getRightTriggerAxis()));
-    m_driverController.leftTrigger().whileTrue(mFeed.outtakeBack(() -> m_driverController.getLeftTriggerAxis()));
-    m_driverController.y().whileTrue(mElevator.GotoPos(42, false));
-    m_driverController.b().whileTrue(mElevator.GotoPos(7, false));
+    m_codriverController.a().whileTrue(mElevator.GotoPos(24.5, false));
+    m_codriverController.y().whileTrue(mElevator.GotoPos(45, false));
+    m_codriverController.b().whileTrue(mElevator.GotoPos(7, false));
 
     mFeed.back.onTrue(mFeed.intakeBoth().until(mFeed.front).andThen(mFeed.intakeBoth().until(mFeed.front.negate())));
 
@@ -139,8 +101,22 @@ private final LedSignaller mLed = new LedSignaller();  // <-- ADDED BY MR H
    *
    * @return the command to run in autonomous
    */
-  //public Command getAutonomousCommand() {
+  public Command getAutonomousCommand() {
     // An example command will be run in autonomous
-  //  return Autos.exampleAuto(m_exampleSubsystem);
-  //}
+    return mElevator.GotoPosSlow(10, false)
+    .until(mElevator.atSetpoint())
+    .andThen(mElevator.GotoPosSlow(5.3, false).withTimeout(0.5))
+    .andThen(mTankdrive.Drive(() -> -0.5, () -> -0.5).withTimeout(2 /* TIME TO DRIVE FORWARD */))
+    .andThen(
+        mTankdrive.Drive(() -> 0, () -> 0)
+          .alongWith(mElevator.GotoPosSlow(24.5 /* ELEVATOR SETPOINT */, false))
+          .until(mElevator.atSetpoint())
+    )
+    .andThen(
+        Commands.parallel(
+            mElevator.GotoPosSlow(24.5 /* ELEVATOR SETPOINT (same as above) */, false),
+            mFeed.outtakeFront(() -> 0.5)
+        ).withTimeout(2)
+    );
+   }
 }
