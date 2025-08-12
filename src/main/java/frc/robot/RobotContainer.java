@@ -96,26 +96,34 @@ public boolean intaking = false;
     //           mArm.GotoPos(20)
     //         )
     //     ));
-    RobotModeTriggers.teleop().and(() -> !intaking).whileTrue(mFeed.intakeBack(() -> 0.5).withInterruptBehavior(InterruptionBehavior.kCancelIncoming).until(mFeed.back).andThen(Commands.run(() -> intaking = true)));
-    mFeed.back.and(() -> intaking).whileTrue(mFeed.stopBack().withInterruptBehavior(InterruptionBehavior.kCancelIncoming).until(mElevator.atSetpoint().and(() -> mElevator.goingForTransfer)).unless(mElevator.atSetpoint().and(() -> mElevator.goingForTransfer)));
-    mFeed.back.and(() -> intaking).whileTrue(mElevator.GotoPos(6.3, true).until(mElevator.atSetpoint()));
+//     double point = 2.9;
+    // RobotModeTriggers.teleop().and(() -> !intaking).whileTrue(mFeed.intakeBack(() -> 0.3).withInterruptBehavior(InterruptionBehavior.kCancelIncoming).unless(mFeed.back).until(mFeed.back).andThen(mFeed.stopBack().alongWith(Commands.run(() -> intaking = true))).andThen(mFeed.stopBack()));
+    RobotModeTriggers.teleop().onTrue(mElevator.GotoPosSlow(10, false).withInterruptBehavior(InterruptionBehavior.kCancelIncoming).until(mElevator.atSetpoint()));
+//     mFeed.back.and(() -> intaking).whileTrue(mFeed.stopBack().withInterruptBehavior(InterruptionBehavior.kCancelIncoming).until(mElevator.atSetpoint().and(() -> mElevator.goingForTransfer)).unless(mElevator.atSetpoint().and(() -> mElevator.goingForTransfer)));
+//     mFeed.back.and(() -> intaking).whileTrue(mElevator.GotoPos(point, true).until(mElevator.atSetpoint()));
 
-    mElevator.atSetpoint().and(() -> intaking).and(() -> mElevator.goingForTransfer)
-      .whileTrue(Commands.parallel(mFeed.intakeBoth(), mElevator.GotoPos(6.3, true)).withInterruptBehavior(InterruptionBehavior.kCancelIncoming).until(mFeed.front));
+//     mElevator.atSetpoint().and(() -> intaking).and(() -> mElevator.goingForTransfer)
+//       .whileTrue(Commands.parallel(mFeed.intakeBoth(), mElevator.GotoPos(point, true)).withInterruptBehavior(InterruptionBehavior.kCancelIncoming).until(mFeed.front));
 
-    mFeed.front.and(() -> intaking).whileTrue(mFeed.intakeFront(() -> 0.5).alongWith(mElevator.GotoPos(6.3, true)).withInterruptBehavior(InterruptionBehavior.kCancelIncoming).until(mFeed.front.negate()).unless(mFeed.front.negate()).andThen(mFeed.stopFront()).until(() -> !mElevator.goingForTransfer));
+//     mFeed.front.and(() -> intaking).whileTrue(mFeed.intakeFront(() -> 0.5).alongWith(mElevator.GotoPos(point, true)).withInterruptBehavior(InterruptionBehavior.kCancelIncoming).until(mFeed.front.negate()).unless(mFeed.front.negate()).andThen(mFeed.stopFront()).until(() -> !mElevator.goingForTransfer));
 
-    m_driverController.rightTrigger().whileTrue(Commands.runOnce(() -> {
-      mElevator.goingForTransfer = false;
-      intaking = false;
-    }).andThen(
-mFeed.outtakeFront(() -> m_driverController.getRightTriggerAxis())));
+//     m_driverController.rightTrigger().whileTrue(Commands.runOnce(() -> {
+//       mElevator.goingForTransfer = false;
+//       intaking = false;
+//       mElevator.Loop1.reset();
+//     }).until(m_driverController.rightTrigger().negate()).alongWith(
+// mFeed.outtakeFront(() -> m_driverController.getRightTriggerAxis()).until(m_driverController.rightTrigger().negate()).andThen(mFeed.stop())));
 
-    m_driverController.y().whileTrue(mElevator.GotoPos(35, false));
+    m_driverController.rightTrigger().whileTrue(mFeed.outtakeFront(() -> m_driverController.getRightTriggerAxis()));
+    m_driverController.leftTrigger().whileTrue(mFeed.outtakeBack(() -> m_driverController.getLeftTriggerAxis()));
+    m_driverController.y().whileTrue(mElevator.GotoPos(42, false));
     m_driverController.b().whileTrue(mElevator.GotoPos(7, false));
 
-    mFeed.setDefaultCommand(mFeed.stop());
-    mElevator.setDefaultCommand(mElevator.Stop());
+    mFeed.back.onTrue(mFeed.intakeBoth().until(mFeed.front).andThen(mFeed.intakeBoth().until(mFeed.front.negate())));
+
+    mFeed.setDefaultCommand(mFeed.intakeBack(() -> 0.5));
+
+    mElevator.setDefaultCommand(mElevator.GotoPosSlow(5.3, false));
     
     // mArm.setDefaultCommand(mArm.Stop());
   }
