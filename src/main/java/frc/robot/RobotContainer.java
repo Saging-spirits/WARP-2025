@@ -6,10 +6,10 @@ package frc.robot;
 
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.subsystems.Arm;
+import frc.robot.subsystems.DriveBasePWM;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.ExampleSubsystem;
 import frc.robot.subsystems.Feed;
-import frc.robot.subsystems.Tankdrive;
 
 import java.util.Set;
 
@@ -28,7 +28,7 @@ public class RobotContainer {
   // The robot's subsystems and commands are defined here...
 //  private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
 
-private final Tankdrive mTankdrive = new Tankdrive();
+private final DriveBasePWM mTankdrive = new DriveBasePWM();
 private final Elevator mElevator = new Elevator();
 private final Arm mArm = new Arm();
 private final Feed mFeed = new Feed();
@@ -56,8 +56,7 @@ private final Feed mFeed = new Feed();
    * joysticks}.
    */
   private void configureBindings() {
-    mTankdrive.setDefaultCommand(mTankdrive.Drive(()->m_driverController.getLeftY(), ()->m_driverController.getRightY()));
-    m_driverController.y().whileTrue(           //POS 1 (Y)
+    mTankdrive.setDefaultCommand(mTankdrive.DriveTank(() -> m_driverController.getLeftY(), () -> m_driverController.getRightY(), ()-> m_driverController.leftBumper().getAsBoolean(), ()-> m_driverController.rightBumper().getAsBoolean()));    m_driverController.y().whileTrue(           //POS 1 (Y)
       Commands.sequence(
         mArm.GotoPosSlow(-13).until(mArm.atSetpoint2()), 
         Commands.parallel(
