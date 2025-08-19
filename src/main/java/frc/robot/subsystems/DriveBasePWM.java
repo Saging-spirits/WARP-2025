@@ -29,6 +29,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.OperatorConstants;
+import frc.robot.subsystems.LedSignaller.Pattern;
 
 
 
@@ -38,6 +39,8 @@ public class DriveBasePWM extends SubsystemBase {
 
   private SparkMax RightSide=new SparkMax(1,MotorType.kBrushed);
   
+  private LedSignaller mLed = new LedSignaller();
+
   @Override
   public void periodic (){
   }
@@ -55,9 +58,9 @@ public class DriveBasePWM extends SubsystemBase {
       LeftPower=OperatorConstants.MaxSpeed*LeftY.getAsDouble();
     }
     if (RightY.getAsDouble()>OperatorConstants.Deadzone){
-      RightPower=OperatorConstants.MaxSpeed*RightY.getAsDouble();
+      RightPower=-OperatorConstants.MaxSpeed*RightY.getAsDouble();
     } else if (RightY.getAsDouble()<-OperatorConstants.Deadzone){
-      RightPower=OperatorConstants.MaxSpeed*RightY.getAsDouble();
+      RightPower=-OperatorConstants.MaxSpeed*RightY.getAsDouble();
     }
     double BoostSpeed = 1;
     if (Boost.getAsBoolean()==true){
@@ -66,11 +69,32 @@ public class DriveBasePWM extends SubsystemBase {
     if (Slow.getAsBoolean()==true){
       BoostSpeed = 0.5;
     }
-    LeftSide.setVoltage(-LeftPower*BoostSpeed);
-    RightSide.setVoltage(-RightPower*BoostSpeed);
+    LeftSide.setVoltage(LeftPower*BoostSpeed);
+    RightSide.setVoltage(RightPower*BoostSpeed);
 
     System.out.println("LeftSpeed"+LeftY.getAsDouble());
     System.out.println("RightSpeed"+RightY.getAsDouble());
+
+  if (mLed != null) {
+    final double deadbandVolts = 5 * 0.05; // ~10% stick movement
+    final double leftMag  = Math.abs(LeftPower);
+    final double rightMag = Math.abs(RightPower);
+
+    Pattern p = Pattern.IDLE;
+
+    if ((RightPower > 0 && rightMag > deadbandVolts) && (LeftPower < 0 && leftMag > deadbandVolts)) { p = Pattern.FORWARDS; }
+    if ((RightPower < 0 && rightMag > deadbandVolts) && (LeftPower > 0 && leftMag > deadbandVolts)) { p = Pattern.BACKWARDS; }
+    if ((LeftPower < 0 && leftMag > deadbandVolts) && (RightPower < 0 && rightMag > deadbandVolts)) { p = Pattern.REV_FWD; }
+    if ((LeftPower > 0 && leftMag > deadbandVolts) && (RightPower > 0 && rightMag > deadbandVolts)) { p = Pattern.FWD_REV; }
+
+    if ((LeftPower < 0 && leftMag > deadbandVolts) && (rightMag < deadbandVolts)) { p = Pattern.SIDE2_FWD; }
+    if ((LeftPower > 0 && leftMag > deadbandVolts) && (rightMag < deadbandVolts)) { p = Pattern.SIDE2_REV; }
+
+    if ((RightPower > 0 && rightMag > deadbandVolts) && (leftMag < deadbandVolts)) { p = Pattern.SIDE1_FWD; }
+    if ((RightPower < 0 && rightMag > deadbandVolts) && (leftMag < deadbandVolts)) { p = Pattern.SIDE1_REV; }
+
+    mLed.setPattern(p);
+}
   });
  }
 
