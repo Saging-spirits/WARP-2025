@@ -76,16 +76,18 @@ UsbCamera camera;
    * joysticks}.
    */
   private void configureBindings() {
-    mTankdrive.setDefaultCommand(mTankdrive.Drive(()->m_driverController.getLeftY(), ()->m_driverController.getRightY()));
+    mTankdrive.setDefaultCommand(mTankdrive.Drive(()->m_driverController.getLeftY(), ()->m_driverController.getRightY(), ()-> m_driverController.leftBumper().getAsBoolean(), ()-> m_driverController.rightBumper().getAsBoolean()));
 
     RobotModeTriggers.teleop().onTrue(mElevator.GotoPosSlow(10, false).withInterruptBehavior(InterruptionBehavior.kCancelIncoming).until(mElevator.atSetpoint()));
 
     m_codriverController.rightTrigger().whileTrue(mFeed.outtakeFront(() -> m_codriverController.getRightTriggerAxis()));
     m_codriverController.leftTrigger().whileTrue(mFeed.outtakeBack(() -> m_codriverController.getLeftTriggerAxis()));
 
-    m_codriverController.a().whileTrue(mElevator.GotoPos(24.5, false));
-    m_codriverController.y().whileTrue(mElevator.GotoPos(45, false));
-    m_codriverController.b().whileTrue(mElevator.GotoPos(7, false));
+    m_codriverController.a().whileTrue(mElevator.GotoPos(7, false));
+    m_codriverController.y().whileTrue(mElevator.GotoPos(35.5, false));
+    m_codriverController.b().whileTrue(mElevator.GotoPos(23, false));
+    m_codriverController.x().whileTrue(mElevator.GotoPos(50, false));
+
 
     mFeed.back.onTrue(mFeed.intakeBoth().until(mFeed.front).andThen(mFeed.intakeBoth().until(mFeed.front.negate())));
 
@@ -106,9 +108,9 @@ UsbCamera camera;
     return mElevator.GotoPosSlow(10, false)
     .until(mElevator.atSetpoint())
     .andThen(mElevator.GotoPosSlow(5.3, false).withTimeout(0.5))
-    .andThen(mTankdrive.Drive(() -> -0.5, () -> -0.5).withTimeout(2 /* TIME TO DRIVE FORWARD */))
+    .andThen(mTankdrive.Drive(() -> -0.5, () -> -0.5, () -> false, () -> false).withTimeout(2 /* TIME TO DRIVE FORWARD */))
     .andThen(
-        mTankdrive.Drive(() -> 0, () -> 0)
+        mTankdrive.Drive(() -> 0, () -> 0, () -> false, () -> false)
           .alongWith(mElevator.GotoPosSlow(24.5 /* ELEVATOR SETPOINT */, false))
           .until(mElevator.atSetpoint())
     )

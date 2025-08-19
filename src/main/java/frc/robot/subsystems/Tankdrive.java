@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
 import com.revrobotics.AbsoluteEncoder;
@@ -33,11 +34,21 @@ public class Tankdrive extends SubsystemBase {
         NetworkTableInstance.getDefault().getEntry("RightEncoder").setNumber(encoderRight.getPosition());
     }
 
-    public Command Drive(DoubleSupplier Joy1Y, DoubleSupplier Joy2Y) {
+    public Command Drive(DoubleSupplier Joy1Y, DoubleSupplier Joy2Y,BooleanSupplier boost, BooleanSupplier slow) {
         return run(() -> {
             // Tank drive voltage mapping
-            final double leftCmdVolts  = 5 * Joy1Y.getAsDouble(); // Left motor voltage
-            final double rightCmdVolts = -5 * Joy2Y.getAsDouble(); // Right motor voltage
+            double leftCmdVolts  = 5 * Joy1Y.getAsDouble(); // Left motor voltage
+            double rightCmdVolts = -5 * Joy2Y.getAsDouble(); // Right motor voltage
+
+            if(boost.getAsBoolean()==true){
+                leftCmdVolts=leftCmdVolts*2;
+                rightCmdVolts=rightCmdVolts*2;
+            }
+
+            if(slow.getAsBoolean()==true){
+                leftCmdVolts=leftCmdVolts*0.5;
+                rightCmdVolts=rightCmdVolts*0.5;
+            }
 
             // LED pattern selection
             if (mLed != null) {
