@@ -5,15 +5,27 @@
 package frc.robot;
 
 import frc.robot.Constants.OperatorConstants;
-import frc.robot.commands.Autos;
-import frc.robot.commands.ExampleCommand;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.ExampleSubsystem;
+import frc.robot.subsystems.Feed;
 import frc.robot.subsystems.Tankdrive;
+
+import frc.robot.subsystems.LedSignaller;
+import frc.robot.subsystems.LedSignaller.Pattern;
+
+import java.util.Set;
+
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cscore.UsbCamera;
+import edu.wpi.first.cscore.VideoMode;
+import edu.wpi.first.util.PixelFormat;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 /**
@@ -28,19 +40,30 @@ public class RobotContainer {
 
 private final Tankdrive mTankdrive = new Tankdrive();
 private final Elevator mElevator = new Elevator();
-private final Arm mArm = new Arm();
+// private final Arm mArm = new Arm();
+private final Feed mFeed = new Feed();
+public boolean intaking = false;
 
+private final LedSignaller mLed = new LedSignaller();  // <-- ADDED BY MR H
 
-
+UsbCamera camera;
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController m_driverController =
       new CommandXboxController(OperatorConstants.kDriverControllerPort);
+  private final CommandXboxController m_codriverController =
+      new CommandXboxController(OperatorConstants.kCoDriverControllerPort);
+
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     // Configure the trigger bindings
+    mTankdrive.setLed(mLed);
+    
     configureBindings();
+
+    camera = CameraServer.startAutomaticCapture();
+    camera.setVideoMode(PixelFormat.kYUYV, 160, 120, 30);
   }
 
   /**
@@ -53,13 +76,26 @@ private final Arm mArm = new Arm();
    * joysticks}.
    */
   private void configureBindings() {
-    mTankdrive.setDefaultCommand(mTankdrive.Drive(()->m_driverController.getLeftY(), ()->m_driverController.getRightY()));
-    m_driverController.y().whileTrue(Commands.parallel(mElevator.GotoPos(0), mArm.GotoPos(-17)));
-    m_driverController.b().whileTrue(mElevator.GotoPos(10));
-    m_driverController.a().whileTrue(mElevator.GotoPos(20));
-    m_driverController.x().whileTrue(Commands.parallel(mElevator.GotoPos(40), mArm.GotoPos(-55)));
-    mElevator.setDefaultCommand(mElevator.Stop());
-    mArm.setDefaultCommand(mArm.Stop());
+    mTankdrive.setDefaultCommand(mTankdrive.Drive(()->m_driverController.getLeftY(), ()->m_driverController.getRightY(), ()-> m_driverController.leftBumper().getAsBoolean(), ()-> m_driverController.rightBumper().getAsBoolean()));
+
+    RobotModeTriggers.teleop().onTrue(mElevator.GotoPosSlow(10, false).withInterruptBehavior(InterruptionBehavior.kCancelIncoming).until(mElevator.atSetpoint()));
+
+    m_codriverController.rightTrigger().whileTrue(mFeed.outtakeFront(() -> m_codriverController.getRightTriggerAxis()));
+    m_codriverController.leftTrigger().whileTrue(mFeed.outtakeBack(() -> m_codriverController.getLeftTriggerAxis()));
+
+    m_codriverController.a().whileTrue(mElevator.GotoPos(7, false));
+    m_codriverController.y().whileTrue(mElevator.GotoPos(35.5, false));
+    m_codriverController.b().whileTrue(mElevator.GotoPos(23, false));
+    m_codriverController.x().whileTrue(mElevator.GotoPos(50, false));
+
+
+    mFeed.back.onTrue(mFeed.intakeBoth().until(mFeed.front).andThen(mFeed.intakeBoth().until(mFeed.front.negate())));
+
+    mFeed.setDefaultCommand(mFeed.intakeBack(() -> 0.5));
+
+    mElevator.setDefaultCommand(mElevator.GotoPosSlow(5.3, false));
+    
+    // mArm.setDefaultCommand(mArm.Stop());
   }
 
   /**
@@ -67,8 +103,22 @@ private final Arm mArm = new Arm();
    *
    * @return the command to run in autonomous
    */
-  //public Command getAutonomousCommand() {
+  public Command getAutonomousCommand() {
     // An example command will be run in autonomous
-  //  return Autos.exampleAuto(m_exampleSubsystem);
-  //}
+    return mElevator.GotoPosSlow(10, false)
+    .until(mElevator.atSetpoint())
+    .andThen(mElevator.GotoPosSlow(5.3, false).withTimeout(0.5))
+    .andThen(mTankdrive.Drive(() -> -0.5, () -> -0.5, () -> false, () -> false).withTimeout(2 /* TIME TO DRIVE FORWARD */))
+    .andThen(
+        mTankdrive.Drive(() -> 0, () -> 0, () -> false, () -> false)
+          .alongWith(mElevator.GotoPosSlow(24.5 /* ELEVATOR SETPOINT */, false))
+          .until(mElevator.atSetpoint())
+    )
+    .andThen(
+        Commands.parallel(
+            mElevator.GotoPosSlow(24.5 /* ELEVATOR SETPOINT (same as above) */, false),
+            mFeed.outtakeFront(() -> 0.5)
+        ).withTimeout(2)
+    );
+   }
 }
